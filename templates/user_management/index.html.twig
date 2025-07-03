@@ -1,0 +1,221 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}GESTION DES UTILISATEURS - SECURIFORM{% endblock %}
+
+{% block page_title %}GESTION DES UTILISATEURS{% endblock %}
+
+{% block body %}
+    <style>
+        .user-management {
+            margin-top: 20px;
+        }
+
+        .role-tabs {
+            display: flex;
+            gap: 2px;
+            margin-bottom: 20px;
+        }
+
+        .role-tab {
+            padding: 10px 20px;
+            background: white;
+            border: none;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .role-tab.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .search-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            flex: 1;
+            max-width: 300px;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .add-user-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .add-user-btn:hover {
+            background: #a00000;
+            color: white;
+            text-decoration: none;
+        }
+
+        .users-list {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .user-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .user-item:last-child {
+            border-bottom: none;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-name {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .user-role {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .user-company {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .user-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .action-icon {
+            color: #666;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .action-icon:hover {
+            color: var(--primary-color);
+        }
+
+        .sort-icons {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            margin-left: 5px;
+        }
+
+        .sort-icon {
+            font-size: 8px;
+            color: #999;
+            cursor: pointer;
+        }
+
+        .sort-icon.active {
+            color: var(--primary-color);
+        }
+    </style>
+
+    <div class="user-management">
+        <!-- Role Tabs -->
+        <div class="role-tabs">
+            <button class="role-tab active">Administrateur</button>
+            <button class="role-tab">Formateur</button>
+            <button class="role-tab">Client</button>
+        </div>
+
+        <!-- Search and Add User -->
+        <div class="search-bar">
+            <input type="text" class="search-input" placeholder="Rechercher un utilisateur...">
+            <a href="{{ path('app_user_new') }}" class="add-user-btn">
+                <i class="fas fa-plus"></i>
+                Ajouter un utilisateur
+            </a>
+        </div>
+
+        <!-- Users List -->
+        <div class="users-list">
+            {% for user in users %}
+                <div class="user-item">
+                    <div class="user-info">
+                        <div>
+                            <div class="user-name">{{ user.firstname }} {{ user.lastname }}</div>
+                            <div class="user-role">{{ user.roles[0]|replace({'ROLE_': ''}) }}</div>
+                            {% if user.company %}
+                                <div class="user-company">{{ user.company }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="user-actions">
+                        <a href="{{ path('app_user_edit', {'id': user.id}) }}" class="action-icon" title="Modifier">
+                            <i class="fas fa-pen"></i>
+                        </a>
+                        <form method="post" action="{{ path('app_user_delete', {'id': user.id}) }}" style="display: inline-block"
+                              onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?');">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ user.id) }}">
+                            <button type="submit" class="action-icon" style="background: none; border: none; padding: 0;" title="Supprimer">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% else %}
+                <div class="user-item">
+                    <div class="user-info">Aucun utilisateur trouvé.</div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Role tab switching
+            const roleTabs = document.querySelectorAll('.role-tab');
+            roleTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    roleTabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    // Here you would typically filter the users list based on the selected role
+                });
+            });
+
+            // Search functionality
+            const searchInput = document.querySelector('.search-input');
+            const userItems = document.querySelectorAll('.user-item');
+            
+            searchInput.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                userItems.forEach(item => {
+                    const userName = item.querySelector('.user-name').textContent.toLowerCase();
+                    const userRole = item.querySelector('.user-role').textContent.toLowerCase();
+                    const userCompany = item.querySelector('.user-company')?.textContent.toLowerCase() || '';
+                    
+                    if (userName.includes(searchTerm) || userRole.includes(searchTerm) || userCompany.includes(searchTerm)) {
+                        item.style.display = '';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}
