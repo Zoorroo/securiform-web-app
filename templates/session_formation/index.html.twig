@@ -1,0 +1,72 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Liste des Sessions de Formation{% endblock %}
+
+{% block body %}
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Liste des Sessions de Formation</h1>
+            <a href="{{ path('app_session_formation_new') }}" class="btn btn-primary">
+                Ajouter une session
+            </a>
+        </div>
+
+        {% for message in app.flashes('success') %}
+            <div class="alert alert-success">
+                {{ message }}
+            </div>
+        {% endfor %}
+
+        {% for message in app.flashes('error') %}
+            <div class="alert alert-danger">
+                {{ message }}
+            </div>
+        {% endfor %}
+
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Formation</th>
+                        <th>Entreprise</th>
+                        <th>Date de début</th>
+                        <th>Date de fin</th>
+                        <th>Lieu</th>
+                        <th>Salle</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for session in sessions %}
+                    <tr>
+                        <td>{{ session.formation.nom }}</td>
+                        <td>{{ session.entreprise.nom }}</td>
+                        <td>{{ session.dateDebut|date('d/m/Y') }}</td>
+                        <td>{{ session.dateFin|date('d/m/Y') }}</td>
+                        <td>{{ session.lieu }}</td>
+                        <td>{{ session.salle }}</td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a href="{{ path('app_session_formation_show', {'id': session.id}) }}" class="btn btn-info btn-sm">
+                                    Voir
+                                </a>
+                                <a href="{{ path('app_session_formation_edit', {'id': session.id}) }}" class="btn btn-warning btn-sm">
+                                    Modifier
+                                </a>
+                                <form method="post" action="{{ path('app_session_formation_delete', {'id': session.id}) }}" style="display: inline-block" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette session ?');">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ session.id) }}">
+                                    <button class="btn btn-danger btn-sm">Supprimer</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="7">Aucune session de formation trouvée</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}
