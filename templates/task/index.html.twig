@@ -1,0 +1,269 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}MES TÂCHES - SECURIFORM{% endblock %}
+
+{% block page_title %}MES TÂCHES{% endblock %}
+
+{% block body %}
+    <style>
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .add-task-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .add-task-btn:hover {
+            background: #a00000;
+            color: white;
+            text-decoration: none;
+        }
+
+        .task-filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .filter-option {
+            padding: 8px 15px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .filter-option.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .task-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .task-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .task-card.overdue {
+            border-left: 4px solid #dc3545;
+        }
+
+        .task-card.upcoming {
+            border-left: 4px solid #ffc107;
+        }
+
+        .task-card.completed {
+            border-left: 4px solid #28a745;
+            opacity: 0.8;
+        }
+
+        .task-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .task-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .task-type {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            background: #f8f9fa;
+        }
+
+        .task-type.reminder-client {
+            background: #e3f2fd;
+            color: #0d47a1;
+        }
+
+        .task-type.reminder-trainer {
+            background: #f3e5f5;
+            color: #4a148c;
+        }
+
+        .task-description {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .task-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .task-action {
+            background: none;
+            border: none;
+            padding: 5px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .task-action:hover {
+            color: var(--primary-color);
+        }
+
+        .task-assignee {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .assignee-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #f8f9fa;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+    </style>
+
+    <div class="task-header">
+        <div class="task-filters">
+            <button class="filter-option active">Toutes</button>
+            <button class="filter-option">À faire</button>
+            <button class="filter-option">En retard</button>
+            <button class="filter-option">Terminées</button>
+        </div>
+
+        <a href="{{ path('app_task_new') }}" class="add-task-btn">
+            <i class="fas fa-plus"></i>
+            Ajouter une tâche
+        </a>
+    </div>
+
+    {% if tasks|length > 0 %}
+        <div class="task-grid">
+            {% for task in tasks %}
+                <div class="task-card {% if task.isOverdue %}overdue{% elseif task.completed %}completed{% elseif task.daysUntilDue <= 7 %}upcoming{% endif %}">
+                    <div class="task-title">{{ task.title }}</div>
+                    
+                    <div class="task-meta">
+                        <div class="task-type {% if task.type == 'reminder_client' %}reminder-client{% elseif task.type == 'reminder_trainer' %}reminder-trainer{% endif %}">
+                            {{ task.type|replace({'general': 'Général', 'reminder_client': 'Rappel client', 'reminder_trainer': 'Rappel formateur'}) }}
+                        </div>
+                        <div>{{ task.dueDate|date('d/m/Y H:i') }}</div>
+                    </div>
+
+                    {% if task.description %}
+                        <div class="task-description">{{ task.description }}</div>
+                    {% endif %}
+
+                    <div class="task-footer">
+                        <div class="task-actions">
+                            <form method="post" action="{{ path('app_task_toggle', {'id': task.id}) }}" style="display: inline-block">
+                                <input type="hidden" name="_token" value="{{ csrf_token('toggle' ~ task.id) }}">
+                                <button type="submit" class="task-action" title="{{ task.completed ? 'Marquer comme non terminée' : 'Marquer comme terminée' }}">
+                                    <i class="fas fa-{{ task.completed ? 'undo' : 'check' }}"></i>
+                                </button>
+                            </form>
+
+                            <a href="{{ path('app_task_edit', {'id': task.id}) }}" class="task-action" title="Modifier">
+                                <i class="fas fa-pen"></i>
+                            </a>
+
+                            <form method="post" action="{{ path('app_task_delete', {'id': task.id}) }}" style="display: inline-block"
+                                  onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette tâche ?');">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ task.id) }}">
+                                <button type="submit" class="task-action" title="Supprimer">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+
+                        {% if task.assignedTo %}
+                            <div class="task-assignee">
+                                <img src="{{ asset('images/default-avatar.png') }}" alt="Avatar" class="assignee-avatar">
+                                <span>{{ task.assignedTo.firstname }} {{ task.assignedTo.lastname }}</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <p>Aucune tâche à afficher.</p>
+            <p>Cliquez sur "Ajouter une tâche" pour créer votre première tâche.</p>
+        </div>
+    {% endif %}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const filterButtons = document.querySelectorAll('.filter-option');
+            const taskCards = document.querySelectorAll('.task-card');
+
+            filterButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    // Update active state
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+
+                    // Filter tasks
+                    const filter = button.textContent.trim().toLowerCase();
+                    taskCards.forEach(card => {
+                        switch(filter) {
+                            case 'toutes':
+                                card.style.display = '';
+                                break;
+                            case 'à faire':
+                                card.style.display = !card.classList.contains('completed') ? '' : 'none';
+                                break;
+                            case 'en retard':
+                                card.style.display = card.classList.contains('overdue') ? '' : 'none';
+                                break;
+                            case 'terminées':
+                                card.style.display = card.classList.contains('completed') ? '' : 'none';
+                                break;
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+{% endblock %}
