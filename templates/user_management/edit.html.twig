@@ -1,0 +1,180 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier Utilisateur - SECURIFORM{% endblock %}
+
+{% block page_title %}MODIFIER L'UTILISATEUR{% endblock %}
+
+{% block body %}
+    <style>
+        .user-form {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .form-section {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-cancel {
+            padding: 10px 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+            color: #666;
+            text-decoration: none;
+        }
+
+        .btn-cancel:hover {
+            background: #f5f5f5;
+            color: #333;
+            text-decoration: none;
+        }
+
+        .btn-save {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            background: var(--primary-color);
+            color: white;
+            cursor: pointer;
+        }
+
+        .btn-save:hover {
+            background: #a00000;
+        }
+
+        .role-options {
+            display: flex;
+            gap: 20px;
+        }
+
+        .role-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .role-option input[type="radio"] {
+            margin: 0;
+        }
+
+        .required::after {
+            content: " *";
+            color: var(--primary-color);
+        }
+
+        .form-help {
+            font-size: 12px;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .user-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin-bottom: 20px;
+            object-fit: cover;
+            display: block;
+            margin: 0 auto 20px;
+        }
+
+        .section-title {
+            color: #333;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+    </style>
+
+    <div class="user-form">
+        {{ form_start(form) }}
+            <div class="form-section">
+                <img src="{{ asset('images/default-avatar.png') }}" alt="Photo de profil" class="user-avatar">
+                
+                <h3 class="section-title">Informations personnelles</h3>
+                
+                <div class="form-group">
+                    <label class="form-label required">Prénom</label>
+                    {{ form_widget(form.firstname, {'attr': {'class': 'form-control'}}) }}
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label required">Nom</label>
+                    {{ form_widget(form.lastname, {'attr': {'class': 'form-control'}}) }}
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label required">Email</label>
+                    {{ form_widget(form.email, {'attr': {'class': 'form-control'}}) }}
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label required">Rôle</label>
+                    {{ form_widget(form.roles, {'attr': {'class': 'role-options'}}) }}
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Entreprise</label>
+                    {{ form_widget(form.company, {'attr': {'class': 'form-control'}}) }}
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3 class="section-title">Modification du mot de passe</h3>
+                
+                <div class="form-group">
+                    <label class="form-label">Nouveau mot de passe</label>
+                    {{ form_widget(form.plainPassword, {'attr': {'class': 'form-control'}}) }}
+                    <div class="form-help">Laissez vide pour conserver le mot de passe actuel</div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <a href="{{ path('app_user_index') }}" class="btn-cancel">Fermer</a>
+                <button type="submit" class="btn-save">Enregistrer les modifications</button>
+            </div>
+        {{ form_end(form) }}
+    </div>
+{% endblock %}
